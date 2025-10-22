@@ -1,0 +1,37 @@
+import gymnasium
+
+# from stable_baselines3 import PPO
+# switch every PPO for A2C to try another policy.
+from stable_baselines3 import PPO
+import numpy as np
+import os
+
+env = gymnasium.make("LunarLander-v3", render_mode="human")
+models_dir = "models/PPO"
+logdir = "logs"
+
+if not os.path.exists(models_dir):
+    os.makedirs(models_dir)
+
+if not os.path.exists(logdir):
+    os.makedirs(logdir)
+
+env.reset()
+
+model = PPO("MlpPolicy", env, verbose=1, tensorboard_log=logdir)
+TIMESTEPS = 10000
+for i in range(30):
+    model.learn(total_timesteps=TIMESTEPS, reset_num_timesteps=False, tb_log_name="PPO")
+    model.save(f"{models_dir}/{TIMESTEPS*i}")
+"""
+episodes = 10
+for ep in range(episodes):
+    obs = env.reset()
+    done = False
+    while not done:
+        env.render()
+        obs, reward, terminated, truncated, info = env.step((env.action_space.sample()))
+        done = terminated or truncated
+
+"""
+env.close()
