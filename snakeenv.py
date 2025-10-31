@@ -53,6 +53,7 @@ class SnekEnv(gym.Env):
         )
 
     def step(self, action):
+        self.terminated = False
         self.prev_actions.append(action)
         cv2.imshow("frame", self.img)
         cv2.waitKey(1)
@@ -76,6 +77,7 @@ class SnekEnv(gym.Env):
             )
 
         # Takes step after fixed time
+
         t_end = time.time() + 0.05
         k = -1
         while time.time() < t_end:
@@ -112,11 +114,11 @@ class SnekEnv(gym.Env):
             collision_with_boundaries(self.snake_head) == 1
             or collision_with_self(self.snake_position) == 1
         ):
-            font = cv2.FONT_HERSHEY_SIMPLEX
+            """font = cv2.FONT_HERSHEY_SIMPLEX
             self.img = np.zeros((500, 500, 3), dtype="uint8")
             cv2.putText(
                 self.img,
-                "Your Score is {}".format(score),
+                "Your Score is {}".format(self.score),
                 (140, 250),
                 font,
                 1,
@@ -124,13 +126,13 @@ class SnekEnv(gym.Env):
                 2,
                 cv2.LINE_AA,
             )
-            cv2.imshow("a", self.img)
-            self.done = True
+            """
+            self.terminated = True
 
-        if self.done:
+        if self.terminated:
             self.reward = -10
         else:
-            self.reward = self.score  # how many apples eaten?
+            self.reward = self.score * 10  # how many apples eaten?
 
         head_x = self.snake_head[0]
         head_y = self.snake_head[1]
@@ -145,20 +147,21 @@ class SnekEnv(gym.Env):
             apple_delta_y,
             snake_length,
         ] + list(self.prev_actions)
-        self.observation = np.array(self.observation)
+        self.observation = np.array(self.observation, dtype=np.float32)
+        self.truncated = False
         info = {}
         return self.observation, self.reward, self.terminated, self.truncated, info
 
     def reset(self, seed=None, options=None):
         # Initial Snake and Apple position
         self.img = np.zeros((500, 500, 3), np.uint8)
-        self.done = False
         self.snake_position = [[250, 250], [240, 250], [230, 250]]
         self.apple_position = [
             random.randrange(1, 50) * 10,
             random.randrange(1, 50) * 10,
         ]
         self.score = 0
+        self.reward = 0
         self.prev_button_direction = 1
         self.button_direction = 1
         self.snake_head = [250, 250]
@@ -178,7 +181,7 @@ class SnekEnv(gym.Env):
             apple_delta_y,
             snake_length,
         ] + list(self.prev_actions)
-        self.observation = np.array(self.observation)
+        self.observation = np.array(self.observation, dtype=np.float32)
         self.info = {}
         return self.observation, self.info
 
