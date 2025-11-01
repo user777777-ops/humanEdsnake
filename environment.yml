@@ -1,0 +1,8 @@
+name: actualSnakeEnv
+channels:
+  - defaults
+dependencies:
+  - opencv
+  - tensorboard
+  - six
+prefix: /home/user777/anaconda3/envs/actualSnakeEnv
