@@ -82,7 +82,7 @@ class SnekEnv(gym.Env):
         k = -1
         while time.time() < t_end:
             if k == -1:
-                k = cv2.waitKey(125)
+                k = cv2.waitKey(5)
             else:
                 continue
 
@@ -98,12 +98,14 @@ class SnekEnv(gym.Env):
         elif action == 3:
             self.snake_head[1] -= 10
 
+        apple_reward = 0
         # Increase Snake length on eating apple
         if self.snake_head == self.apple_position:
-            self.apple_position, score = collision_with_apple(
+            self.apple_position, self.score = collision_with_apple(
                 self.apple_position, self.score
             )
             self.snake_position.insert(0, list(self.snake_head))
+            apple_reward = 10000
 
         else:
             self.snake_position.insert(0, list(self.snake_head))
@@ -129,10 +131,14 @@ class SnekEnv(gym.Env):
             """
             self.terminated = True
 
+        euclidean_dist_to_apple = np.linalg.norm(
+            np.array(self.snake_head) - np.array(self.apple_position)
+        )
+        self.total_reward = ((250 - euclidean_dist_to_apple) + apple_reward) / 100
+        self.reward = self.total_reward - self.prev_reward
+        self.prev_reward = self.total_reward
         if self.terminated:
             self.reward = -10
-        else:
-            self.reward = self.score * 10  # how many apples eaten?
 
         head_x = self.snake_head[0]
         head_y = self.snake_head[1]
@@ -150,7 +156,13 @@ class SnekEnv(gym.Env):
         self.observation = np.array(self.observation, dtype=np.float32)
         self.truncated = False
         info = {}
-        return self.observation, self.reward, self.terminated, self.truncated, info
+        return (
+            self.observation,
+            self.total_reward,
+            self.terminated,
+            self.truncated,
+            info,
+        )
 
     def reset(self, seed=None, options=None):
         # Initial Snake and Apple position
@@ -165,6 +177,8 @@ class SnekEnv(gym.Env):
         self.prev_button_direction = 1
         self.button_direction = 1
         self.snake_head = [250, 250]
+        # self.terminated=0
+        self.prev_reward = 0
         # head_x, head_y, apple_delta_x, apple_delta_y,snake_length, previous moves
         head_x = self.snake_head[0]
         head_y = self.snake_head[1]
