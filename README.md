@@ -91,6 +91,11 @@ python doublecheckenv.py
 - `models/`: Directory for saved models.
 - `logs/`: Directory for TensorBoard logs.
 
+## Video results:
+
+[![Snake Demo](thumbnail.png)](snakeVid.mp4)
+
+
 ## Notes
 
 - The Snake environment aims for a snake length goal of 30.
